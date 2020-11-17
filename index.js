@@ -3,7 +3,7 @@ const axios = require("axios");
 const temp = require("pi-temperature");
 
 //MQTT Connection
-const client = mqtt.connect("mqtt://192.168.1.104");
+const client = mqtt.connect("mqtt://192.168.16.102");
 
 client.on("connect", () => {
   console.log("Connected to MQTT Broker");
@@ -24,10 +24,16 @@ client.on("message", (topic, message) => {
       });
       break;
     case "healthCheck/broker":
-      temp.measure(function (err, temp) {
-        if (err) console.error(err);
-        else client.publish("healthCheck/broker", `Power: ON, Temp: ${temp}`);
-      });
+      var status = "Power: ON"
+    //   temp.measure(function (err, temp) {
+    //     if (err) {
+    //       console.log(error);
+    //     } else {
+    //       status = `Power: ON, Temp: ${temp}`;
+    //     }
+    //   });
+      console.log(status);
+      client.publish("healthCheck/broker", status);
       break;
   }
 });
