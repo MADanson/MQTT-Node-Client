@@ -1,6 +1,8 @@
 const mqtt = require("mqtt");
 const axios = require("axios");
+const temp = require("pi-temperature")
 
+//MQTT Connection
 const client = mqtt.connect("mqtt://192.168.1.104")
 
 client.on("connect", () => {
@@ -9,8 +11,8 @@ client.on("connect", () => {
     client.subscribe("healthCheck/broker")
 })
 
-client.on("error", () => {
-    console.log("An error occured!")
+client.on("error", (error) => {
+    console.log("An error occured: "+error)
 })
 client.on("message", (topic, message) => {
     switch(topic){
@@ -22,8 +24,11 @@ client.on("message", (topic, message) => {
             })
             break;
         case("healthCheck/broker"):
-            //console.log("ALL SYSTEMS NOMINAL")
-            client.publish("healthCheck/broker", "ALL SYSTEMS NOMINAL")
+            var temp = temp.measure((err, temp) => {
+                if(err) console.error(err)
+                else return temp
+            })
+            client.publish("healthCheck/broker", `Power: ON, Temp: ${temp}`)
             break;
     }
 })
