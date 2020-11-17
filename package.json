@@ -1,0 +1,24 @@
+{
+  "name": "mqtt-node-client",
+  "version": "1.0.0",
+  "description": "Node App for communicating with MQTT broker",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MADanson/MQTT-Node-Client.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MADanson/MQTT-Node-Client/issues"
+  },
+  "homepage": "https://github.com/MADanson/MQTT-Node-Client#readme",
+  "dependencies": {
+    "axios": "^0.21.0",
+    "mqtt": "^4.2.5",
+    "nodemon": "^2.0.6"
+  }
+}
