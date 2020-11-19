@@ -1,6 +1,6 @@
 const mqtt = require("mqtt");
 const axios = require("axios");
-const temp = require("pi-temperature");
+//const temp = require("pi-temperature");
 
 //MQTT Connection
 const client = mqtt.connect("mqtt://192.168.1.104");
@@ -47,9 +47,9 @@ client.on("message", (topic) => {
 //Api Call
 async function getTime() {
   const res = await axios.get(timeApi);
-  //console.log(res.data);
+  console.log(res.data);
   const data = {
-    time: res.data.datetime.substring(11, 19),
+    time: timeToDouble(res.data.datetime),
     day: res.data.day_of_week,
   };
   return data;
@@ -64,16 +64,20 @@ async function getSun() {
   return data;
 }
 
+function timeToDouble(time){
+    const timeStr = time.substring(11,19)
+    const timeArray = timeStr.split(":")
+    return timeArray[0] + "." + timeArray[1]
+}
 function timeConvert(time) {
   const unix_time = time;
 
   const date = new Date(unix_time * 1000);
   const hours = date.getHours();
   const minutes = "0" + date.getMinutes();
-  const seconds = "0" + date.getSeconds();
 
   const formattedTime =
-    hours + ":" + minutes.substr(-2) + ":" + seconds.substr(-2);
+    hours + "." + minutes.substr(-2)
 
   return formattedTime;
 }
