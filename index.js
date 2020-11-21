@@ -1,12 +1,13 @@
 const mqtt = require("mqtt");
 const axios = require("axios");
+require('dotenv').config()
 //const temp = require("pi-temperature");
 
 //MQTT Connection
-const client = mqtt.connect("mqtt://192.168.1.104");
+const client = mqtt.connect("mqtt://"+process.env.BROKER_IP);
 const timeApi = "http://worldtimeapi.org/api/ip";
 const weatherApi =
-  "http://api.openweathermap.org/data/2.5/weather?q=Bristol,uk&units=metric&appid=b9c11ca10cec7e4ad57869a653171aee";
+  "http://api.openweathermap.org/data/2.5/weather?q="+process.env.CITY+",uk&units=metric&appid="+process.env.API_KEY;
 
 client.on("connect", () => {
   console.log("Connected to MQTT Broker");

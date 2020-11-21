@@ -18,6 +18,7 @@
   "homepage": "https://github.com/MADanson/MQTT-Node-Client#readme",
   "dependencies": {
     "axios": "^0.21.0",
+    "dotenv": "^8.2.0",
     "mqtt": "^4.2.5",
     "nodemon": "^2.0.6",
     "pi-temperature": "^2.1.0"
