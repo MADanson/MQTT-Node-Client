@@ -144,7 +144,7 @@ async function healthReport() {
 }
 
 function getTemp() {
-  if (process.env.ISDEV) return "Script is in development mode";
+  if (process.env.ISDEV === true) return "Script is in development mode";
   const temp = temp.measure((err, temp) => {
     if (err) console.error(err);
     else return temp;
