@@ -19,6 +19,7 @@
   "dependencies": {
     "axios": "^0.21.0",
     "dotenv": "^8.2.0",
+    "ip": "^1.1.5",
     "mqtt": "^4.2.5",
     "pi-temperature": "^2.1.0"
   },
