@@ -1,19 +1,25 @@
 const mqtt = require("mqtt");
 const axios = require("axios");
-require('dotenv').config()
+require("dotenv").config();
 //const temp = require("pi-temperature");
 
 //MQTT Connection
-const client = mqtt.connect("mqtt://"+process.env.BROKER_IP, {username: "blinds", password: process.env.PASSKEY});
+const client = mqtt.connect("mqtt://" + process.env.BROKER_IP, {
+  username: "blinds",
+  password: process.env.PASSKEY,
+});
 const timeApi = "http://worldtimeapi.org/api/ip";
 const weatherApi =
-  "http://api.openweathermap.org/data/2.5/weather?q="+process.env.CITY+",uk&units=metric&appid="+process.env.API_KEY;
+  "http://api.openweathermap.org/data/2.5/weather?q=" +
+  process.env.CITY +
+  ",uk&units=metric&appid=" +
+  process.env.API_KEY;
 
-var cacheTimeout = Date.now()
+var cacheTimeout = Date.now();
 var sun = {
   sunrise: 0,
   sunset: 0,
-}
+};
 
 client.on("connect", () => {
   console.log("Connected to MQTT Broker");
@@ -29,10 +35,10 @@ client.on("message", (topic) => {
   switch (topic) {
     case "get/time":
       console.log("Time Request!");
-      getApiTime()
+      time()
         .then((data) => {
-          console.log(data);
-          client.publish("spaff/time", JSON.stringify(data));
+          // console.log(data);
+          
         })
         .catch((err) => {
           console.log(err);
@@ -51,23 +57,70 @@ client.on("message", (topic) => {
       break;
   }
 });
-//Api Call
-async function getApiTime() {
-  const res = await axios.get(timeApi);
-  console.log(res.data);
+
+async function time() {
+  var res = {};
+  let maxAttempts = 0;
+  var success = false;
+  while (!success && maxAttempts < 5) {
+    const attempt = await timeApiCall();
+    if (attempt.status === 200) {
+      res = attempt.data;
+      success = true;
+      break;
+    }
+
+    console.log("Failed... Retrying");
+    setTimeout(() => {
+      maxAttempts++
+    }, 2000);
+  }
+  if(success === false) {
+    console.error("Time server timed out")
+    return null
+  }
+  // console.log(res);
   const data = {
-    time: Number(timeToDouble(res.data.datetime)),
-    day: res.data.day_of_week - 1,  
+    time: timeToDouble(res.datetime),
+    day: res.day_of_week,
   };
-  return data;
+  const seconds = res.datetime.substring(17, 19);
+  console.log(seconds);
+  const timeout = 60 - seconds;
+
+  console.log(timeout, "Seconds till the minute");
+
+  setTimeout(() => {
+    console.log("Spaffed Time")
+    client.publish("spaff/time", JSON.stringify(data));
+  }, (timeout*1000));
+}
+
+async function timeApiCall() {
+  const res = axios
+    .get(timeApi)
+    .then((res) => {
+      return res;
+    })
+    .catch((err) => {
+      return err;
+    });
+  return res;
 }
 
 async function getSun() {
-  if(sun.sunrise !== 0 && (cacheTimeout) > Date.now()){
-    const time = new Date(cacheTimeout)
-    console.log("Will be fresh at: ", time.getHours(), ":", time.getMinutes(), ":", time.getSeconds())
-    console.log("Sending cached sun data")
-    return sun
+  if (sun.sunrise !== 0 && cacheTimeout > Date.now()) {
+    const time = new Date(cacheTimeout);
+    console.log(
+      "Will be fresh at: ",
+      time.getHours(),
+      ":",
+      time.getMinutes(),
+      ":",
+      time.getSeconds()
+    );
+    console.log("Sending cached sun data");
+    return sun;
   }
   const res = await axios.get(weatherApi);
   //console.log(res.data);
@@ -75,14 +128,20 @@ async function getSun() {
     sunrise: Number(timeConvert(res.data.sys.sunrise)),
     sunset: Number(timeConvert(res.data.sys.sunset)),
   };
-  cacheTimeout = Date.now()  + 3600000
+  cacheTimeout = Date.now() + 3600000;
   return sun;
 }
 
-function timeToDouble(time){
-    const timeStr = time.substring(11,19)
-    const timeArray = timeStr.split(":")
-    return timeArray[0] + "." + timeArray[1]
+function timeToDouble(time) {
+  const timeStr = time.substring(11, 19);
+  const timeArray = timeStr.split(":");
+  if(timeArray[1] === 59){
+    timeArray[1] = 0;
+    if(timeArray[0] === 23){
+      timeArray[0] = 0
+    }
+  }
+  return timeArray[0] + "." + timeArray[1];
 }
 
 function timeConvert(time) {
@@ -92,8 +151,7 @@ function timeConvert(time) {
   const hours = date.getHours();
   const minutes = "0" + date.getMinutes();
 
-  const formattedTime =
-    hours + "." + minutes.substr(-2)
+  const formattedTime = hours + "." + minutes.substr(-2);
 
   return formattedTime;
 }
